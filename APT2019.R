@@ -138,6 +138,65 @@ RHP_morphine_DR$variable <- as.numeric(as.character(RHP_morphine_DR$variable))
 RHP_morphine_DR <- RHP_morphine_DR %>% dplyr::rename(Dose = variable)
 RHP_morphine_DR <- RHP_morphine_DR %>% dplyr::rename(Latency = value)
 
+### ANOVA
+
+#### SHP
+
+##### THC
+
+logSHP_DR_scaled
+
+logSHP_THC_DR_spread <- logSHP_DR_scaled %>%
+  dplyr::select(Dose, log_Effect_correction) %>%
+  dplyr::mutate(Dose = factor(Dose, ordered = T),
+                row_id=1:n()) %>%
+  tidyr::spread(key = Dose, value = log_Effect_correction) %>%
+  dplyr::select(-row_id) 
+
+write.table(logSHP_THC_DR_spread, "./logSHP_THC_DR_spread.txt", sep="\t", row.names = F)
+
+##### Morphine
+
+logSHP_morphine_DR
+
+logSHP_morphine_DR_spread <- logSHP_morphine_DR %>%
+  dplyr::select(Dose, log_latency_correction) %>%
+  dplyr::mutate(Dose = factor(Dose, ordered = T),
+                row_id=1:n()) %>%
+  tidyr::spread(key = Dose, value = log_latency_correction) %>%
+  dplyr::select(-row_id) 
+
+write.table(logSHP_morphine_DR_spread, "./logSHP_morphine_DR_spread.txt", sep="\t", row.names = F)
+
+#### RHP
+
+##### THC
+
+logRHP_DR_scaled
+
+logRHP_THC_DR_spread <- logRHP_DR_scaled %>%
+  dplyr::select(Dose, log_Effect_correction) %>%
+  dplyr::mutate(Dose = factor(Dose, ordered = T),
+                row_id=1:n()) %>%
+  tidyr::spread(key = Dose, value = log_Effect_correction) %>%
+  dplyr::select(-row_id) 
+
+write.table(logRHP_THC_DR_spread, "./logRHP_THC_DR_spread.txt", sep="\t", row.names = F)
+
+##### Morphine
+
+RHP_morphine_DR
+
+logRHP_morphine_DR_spread <- RHP_morphine_DR %>%
+  dplyr::select(Dose, log_latency_correction) %>%
+  dplyr::mutate(Dose = factor(Dose, ordered = T),
+                row_id=1:n()) %>%
+  tidyr::spread(key = Dose, value = log_latency_correction) %>%
+  dplyr::select(-row_id) 
+
+write.table(logRHP_morphine_DR_spread, "./logRHP_morphine_DR_spread.txt", sep="\t", row.names = F)
+
+
 ### G*Power
 
 #### Alpha = 0.05, 0.01 SHP
@@ -206,20 +265,21 @@ colnames(mean.data) <- c("Protocol", "Treatment", "Average")
 ## Control subpopulations
 
 ggplot(subsets_BPS, aes(x = Subset, y = Latency)) +
-  geom_point(position = position_jitter(width = 0.20), 
-             alpha = 0.25, size = 3, pch = 19, colour = "grey20") +
+  geom_point(aes(colour = Protocol), position = position_jitter(width = 0.20), 
+             alpha = 0.25, size = 3, pch = 19) +
   facet_wrap(~ Protocol, scales = "free_y") +
-  stat_summary(fun.data = mean_sdl, geom = "errorbar", size = 1, width = 0.5, alpha = 0.85) +
+  stat_summary(fun.data = mean_sdl, geom = "errorbar", size = 1, width = 0.5, alpha = 0.75) +
   stat_summary(fun.y = mean, geom = "point", pch = 15, size = 4, alpha = 0.85) +
+  scale_colour_manual(values = c("#7570B3", "#D95F02"), guide = F) +
   theme_bw() +
   theme(text = element_text(size = 14, family = "Arial"),
         axis.text = element_text(size = 14, colour = "black", family = "Arial"),
         strip.text.x = element_text(size = 14, colour = "black", family = "Arial"),
-        strip.background = element_blank(),
         legend.text = element_text(size = 14, family = "Arial"),
-        panel.background = element_blank(),
+        panel.background = element_rect(),
         panel.grid.major = element_line(colour = "grey80", size = 0.3),
-        panel.grid.minor = element_line(colour = "grey88", size = 0.25)) +
+        panel.grid.minor = element_line(colour = "grey88", size = 0.25),
+        strip.background = element_blank()) +
   labs(x = " ",y = "Latency (s)")
 
 ### Image: Control subpopulation
@@ -247,7 +307,7 @@ SHP_normal_combined_panel1 <- ggplot(SHP_combined_BPS, aes(sample = latency_corr
 
 SHP_normal_combined_dens <- axis_canvas(SHP_normal_combined_panel1, axis = "y") +
   geom_vridgeline(data = SHP_combined_BPS, aes(y = latency_correction, x = 0, width = ..density..),
-                  stat = "ydensity", alpha = 0.85, size = 0.75, trim = F, fill = "grey20") 
+                  stat = "ydensity", alpha = 0.5, size = 0.75, trim = F, fill = "#7570B3") 
 
 SHP_normal_combined_pp1 <- insert_yaxis_grob(SHP_normal_combined_panel1, SHP_normal_combined_dens, grid::unit(0.2, "null"),
                                              position = "right")
@@ -282,7 +342,7 @@ SHP_log_combined_panel1 <- ggplot(SHP_combined_BPS, aes(sample = log_latency_cor
 
 SHP_log_combined_dens <- axis_canvas(SHP_log_combined_panel1, axis = "y") +
   geom_vridgeline(data = SHP_combined_BPS, aes(y = log_latency_correction, x = 0, width = ..density..),
-                  stat = "ydensity", alpha = 0.85, size = 0.75, trim = F, fill = "grey20") 
+                  stat = "ydensity", alpha = 0.5, size = 0.75, trim = F, fill = "#7570B3") 
 
 SHP_log_combined_pp1 <- insert_yaxis_grob(SHP_log_combined_panel1, SHP_log_combined_dens, grid::unit(0.2, "null"),
                                           position = "right")
@@ -323,7 +383,7 @@ RHP_normal_combined_panel1 <- ggplot(RHP_combined_BPS, aes(sample = latency_corr
 
 RHP_normal_combined_dens <- axis_canvas(RHP_normal_combined_panel1, axis = "y") +
   geom_vridgeline(data = RHP_combined_BPS, aes(y = latency_correction, x = 0, width = ..density..),
-                  stat = "ydensity", alpha = 0.85, size = 0.75, trim = F, fill = "grey20") 
+                  stat = "ydensity", alpha = 0.5, size = 0.75, trim = F, fill = "#D95F02") 
 
 RHP_normal_combined_pp1 <- insert_yaxis_grob(RHP_normal_combined_panel1, RHP_normal_combined_dens, grid::unit(0.2, "null"),
                                              position = "right")
@@ -358,7 +418,7 @@ RHP_log_combined_panel1 <- ggplot(RHP_combined_BPS, aes(sample = log_latency_cor
 
 RHP_log_combined_dens <- axis_canvas(RHP_log_combined_panel1, axis = "y") +
   geom_vridgeline(data = RHP_combined_BPS, aes(y = log_latency_correction, x = 0, width = ..density..),
-                  stat = "ydensity", alpha = 0.85, size = 0.75, trim = F, fill = "grey20") 
+                  stat = "ydensity", alpha = 0.5, size = 0.75, trim = F, fill = "#D95F02") 
 
 RHP_log_combined_pp1 <- insert_yaxis_grob(RHP_log_combined_panel1, RHP_log_combined_dens, grid::unit(0.2, "null"),
                                           position = "right")
@@ -387,6 +447,9 @@ logSHP_scaled_line$p <- logSHP_scaled[,1]
 logSHP_scaled_line$pmin <- logSHP_scaled[,2]
 logSHP_scaled_line$pmax <- logSHP_scaled[,3]
 
+aov_logSHP_scaled <- logSHP_DR_scaled %>%
+  spread(key = Dose, value = log_Effect_correction)
+
 logTHC_SHP_scaled_graph <- ggplot(logSHP_DR_scaled, aes(x = Dose, y = log_Effect_correction)) +
   geom_point(colour = "black", fill = "black", alpha = 0.25, size = 2) + 
   geom_line(data = logSHP_scaled_line, aes(x = Dose,y = p)) + 
@@ -394,8 +457,8 @@ logTHC_SHP_scaled_graph <- ggplot(logSHP_DR_scaled, aes(x = Dose, y = log_Effect
   labs(title = "Standard hot plate: THC", 
        subtitle = "n = 4-20 per group", x = "Dose (mg/kg)", y = "Proportion of log-effect") +
   stat_summary(fun.data = mean_sdl, geom = "errorbar", colour = "black", width = 0.25) +
-  stat_summary(fun.data = mean_se, geom = "errorbar", colour = "seagreen", alpha = 0.75, width = 0.2, size = 0.75) +
-  stat_summary(fun.y = mean, geom = "point", colour = "seagreen", alpha = 0.85, size = 3, pch = 15) +
+  stat_summary(fun.data = mean_se, geom = "errorbar", colour = "#7570B3", alpha = 0.75, width = 0.2, size = 0.75) +
+  stat_summary(fun.y = mean, geom = "point", colour = "#7570B3", alpha = 0.85, size = 3, pch = 15) +
   geom_ribbon(data = logSHP_scaled_line, aes(x = Dose,y = p, ymin = pmin, ymax = pmax), alpha = 0.15) +
   scale_x_continuous(trans = "log10", breaks = c(0.01, 0.1, 1, 10), 
                      labels =c("Vehicle", "-1", "0", "1")) +
@@ -426,8 +489,8 @@ logmorphine_SHP_graph <- ggplot(logSHP_morphine_DR, aes(x = Dose, y = log_latenc
   labs(title = "Standard hot plate: Morphine", 
        subtitle = "n = 7 per group", x = "Dose (mg/kg)", y = "Proportion of log-effect") +
   stat_summary(fun.data = mean_sdl, geom = "errorbar", colour = "black", width = 0.25) +
-  stat_summary(fun.data = mean_se, geom = "errorbar", colour = "seagreen", alpha = 0.75, width = 0.2, size = .75) +
-  stat_summary(fun.y = mean, geom = "point", colour = "seagreen", alpha = 0.85, size = 3, pch = 15) +
+  stat_summary(fun.data = mean_se, geom = "errorbar", colour = "#7570B3", alpha = 0.75, width = 0.2, size = .75) +
+  stat_summary(fun.y = mean, geom = "point", colour = "#7570B3", alpha = 0.85, size = 3, pch = 15) +
   geom_ribbon(data = logmorphine_SHPline, aes(x = Dose,y = p, ymin = pmin, ymax = pmax), alpha = 0.2) +
   scale_x_continuous(trans = "log10", breaks = c(0.01, 0.1, 1, 10), 
                      labels =c("Vehicle", "-1", "0", "1")) +
@@ -461,8 +524,8 @@ logTHC_scaled_RHP_graph <- ggplot(logRHP_DR_scaled, aes(x = Dose, y = log_Effect
   scale_x_continuous(trans = "log10", breaks = c(0.01, 0.1, 1.0, 10), 
                      labels =c("Vehicle", "-1", "0", "1")) +
   stat_summary(fun.data = mean_sdl, geom = "errorbar", colour = "black", width = 0.25) +
-  stat_summary(fun.data = mean_se, geom = "errorbar", colour = "tomato3", alpha = 0.75, width = 0.2, size = 0.75) +
-  stat_summary(fun.y = mean, geom = "point", colour = "tomato3", alpha = 0.85, size = 3, shape = 15) +
+  stat_summary(fun.data = mean_se, geom = "errorbar", colour = "#D95F02", alpha = 0.75, width = 0.2, size = 0.75) +
+  stat_summary(fun.y = mean, geom = "point", colour = "#D95F02", alpha = 0.85, size = 3, shape = 15) +
   geom_ribbon(data = logRHPline_scaled, aes(x = Dose,y = p, ymin = pmin, ymax = pmax), alpha = 0.15) +
   theme(text = element_text(family = "Arial", size = 14),
         axis.text = element_text(family = "Arial", size = 14),
@@ -492,8 +555,8 @@ morphine_RHP_graph <- ggplot(RHP_morphine_DR, aes(x = Dose, y = log_latency_corr
   labs(title = "Ramped hot plate: Morphine", 
        subtitle = "n = 8 per group", x = "Dose (mg/kg)", y = "Proportion of log-effect") +
   stat_summary(fun.data = mean_sdl, geom = "errorbar", colour = "black", width = 0.25) +
-  stat_summary(fun.data = mean_se, geom = "errorbar", colour = "tomato3", alpha = 0.75, width = 0.2, size = 0.75) +
-  stat_summary(fun.y = mean, geom = "point", colour = "tomato3", alpha = 0.85, size = 3, pch = 15) +
+  stat_summary(fun.data = mean_se, geom = "errorbar", colour = "#D95F02", alpha = 0.75, width = 0.2, size = 0.75) +
+  stat_summary(fun.y = mean, geom = "point", colour = "#D95F02", alpha = 0.85, size = 3, pch = 15) +
   geom_ribbon(data = morphine_RHPline, aes(x = Dose,y = p, ymin = pmin, ymax = pmax), alpha = 0.2) +
   scale_x_continuous(trans = "log10", breaks = c(0.01, 0.1, 1, 10), 
                      labels =c("Vehicle", "-1", "0", "1")) +
@@ -534,12 +597,12 @@ ggplot(G_power, aes(x = Sample_size, y = logSHP, group = Groups)) +
   ylab(expression("Power (1 - "*beta*" error probability)")) +
   labs(title = "G*Power analysis: Standard hot plate (log-transformed)",
        subtitle = expression("Rows determined by "*alpha*" value; Effect size: THC ("*omega^2*" = 0.67), morphine ("*omega^2*" = 0.71)")) +
-  theme(text = element_text(size = 14, family = "Century Gothic"),
-        axis.text = element_text(size = 14, colour = "black", family = "Century Gothic"),
-        strip.text.x = element_text(size = 14, colour = "black", family = "Century Gothic"),
-        strip.text.y = element_text(size = 14, colour = "black", family = "Century Gothic"),
+  theme(text = element_text(size = 14, family = "Arial"),
+        axis.text = element_text(size = 14, colour = "black", family = "Arial"),
+        strip.text.x = element_text(size = 14, colour = "black", family = "Arial"),
+        strip.text.y = element_text(size = 14, colour = "black", family = "Arial"),
         strip.background = element_rect(fill = alpha("seagreen", 0.75)),
-        legend.text = element_text(size = 14, family = "Century Gothic")) +
+        legend.text = element_text(size = 14, family = "Arial")) +
   geom_abline(slope = 0, intercept = 0.8, lty = 3, colour = "black", alpha = 0.75) +
   geom_abline(slope = 0, intercept = 0.9, lty = 1, colour = "black", alpha = 0.75)
 
@@ -552,16 +615,16 @@ Gpower_plot_1 <- ggplot(Power_plot_2, aes(x = Sample_size, y = Value, group = Gr
   theme_bw() +
   scale_shape_manual(values = c(16, 15, 17, 18, 21), name = "Treatment\ngroups") +
   scale_colour_grey(name = "Treatment\ngroups") +
-  scale_x_continuous(limits = c(10, 80), breaks = seq(10, 80, 10)) +
+  scale_x_continuous(limits = c(10, 100), breaks = seq(10, 100, 10)) +
   scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.2)) +
   ylab(expression("Power (1 - "*beta*" error probability)")) +
   xlab("Total sample size") +
   theme(text = element_text(size = 14, family = "Arial"),
         axis.text = element_text(size = 14, colour = "black", family = "Arial"),
-        strip.text.x = element_text(size = 14, colour = "white", family = "Arial"),
-        strip.text.y = element_text(size = 14, colour = "white", angle = 0,
+        strip.text.x = element_text(size = 14, colour = "black", family = "Arial"),
+        strip.text.y = element_text(size = 14, colour = "black", angle = 0,
                                     family = "Arial"),
-        strip.background = element_rect(fill = alpha("grey10", 0.75)),
+        strip.background.x = element_rect(fill = "transparent"),
         legend.text = element_text(size = 14, family = "Arial")) +
   geom_abline(slope = 0, intercept = 0.8, lty = 3, colour = "black", size = 0.5, alpha = 0.75) +
   geom_vline(data = mean.data, mapping = aes(xintercept = c(28, 25, 32, 23)),
@@ -570,7 +633,7 @@ Gpower_plot_1 <- ggplot(Power_plot_2, aes(x = Sample_size, y = Value, group = Gr
 ####
 g1 <- ggplot_gtable(ggplot_build(Gpower_plot_1))
 stripr1 <- which(grepl('strip-r', g1$layout$name))
-fills1 <- alpha(c("black", "grey40"), 0.75)
+fills1 <- alpha(c("#7570B3", "#D95F02"), 0.5)
 k1 <- 1
 for (i in stripr1) {
   j1 <- which(grepl('rect', g1$grobs[[i]]$grobs[[1]]$childrenOrder))
@@ -578,7 +641,7 @@ for (i in stripr1) {
   k1 <- k1+1
 }
 GPower_combined_plot1 <- plot_grid(g1)
-ggsave(filename = "GPower_combined_plot1.tiff", plot = GPower_combined_plot1, width = 10, height = 7)
+ggsave(filename = "GPower_combined_plot2.tiff", plot = GPower_combined_plot1, width = 10, height = 7)
 
 ### Combined G*Power plot group size 5
 
@@ -600,7 +663,7 @@ Gpower_plot_2 <- ggplot(Power_plot_2, aes(x = Sample_size, y = Value, group = Gr
   theme(text = element_text(size = 14, family = "Arial"),
         axis.text = element_text(size = 14, colour = "black", family = "Arial"),
         strip.text.x = element_text(size = 14, colour = "white", family = "Arial"),
-        strip.text.y = element_text(size = 14, colour = "white", angle = 0,
+        strip.text.y = element_text(size = 14, colour = "black", angle = 0,
                                     family = "Arial"),
         strip.background = element_rect(fill = alpha("grey10", 0.75)),
         legend.text = element_text(size = 14, family = "Arial")) +
@@ -612,7 +675,7 @@ Gpower_plot_2 <- ggplot(Power_plot_2, aes(x = Sample_size, y = Value, group = Gr
 
 g2 <- ggplot_gtable(ggplot_build(Gpower_plot_2))
 stripr2 <- which(grepl('strip-r', g2$layout$name))
-fills2 <- alpha(c("black", "grey40"), 0.75)
+fills2 <- alpha(c("#7570B3", "#D95F02"), 0.5)
 k2 <- 1
 for (i in stripr2) {
   j2 <- which(grepl('rect', g2$grobs[[i]]$grobs[[1]]$childrenOrder))
@@ -622,3 +685,5 @@ for (i in stripr2) {
 
 GPower_combined_plot2 <- plot_grid(g2)
 ggsave(filename = "GPower_combined_plot2.tiff", plot = GPower_combined_plot2, width = 10, height = 7)
+
+
